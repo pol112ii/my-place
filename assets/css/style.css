@@ -91,6 +91,12 @@ body {
 
 button, .chip, .tab, .star, .toggle { touch-action: manipulation; }
 
+/* 앱처럼 느껴지도록 — 조작용 요소에서는 길게 눌러도 글자가 잡히지 않는다. */
+.topbar, .toolbar, .tabbar, .group-head, button, .chip, .tag, a.ghost-btn {
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+}
+
 h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -.01em; }
 button { font: inherit; color: inherit; }
 input, select, textarea { font: inherit; color: inherit; }
@@ -234,15 +240,34 @@ input, select, textarea { font: inherit; color: inherit; }
   -webkit-overflow-scrolling: touch;
 }
 .list-head {
-  position: sticky; top: 0; z-index: 5;
   display: flex; align-items: baseline; gap: 8px;
   padding: 12px 16px 8px;
-  background: linear-gradient(var(--bg) 72%, transparent);
 }
 .count { font-size: 13px; font-weight: 700; }
 .list-head-hint { font-size: 12px; color: var(--text-faint); }
 
-.cards { list-style: none; margin: 0; padding: 0 12px 96px; display: grid; gap: 8px; }
+.cards {
+  --gut: 12px;
+  list-style: none; margin: 0;
+  padding: 0 calc(var(--gut) + var(--safe-right)) 96px calc(var(--gut) + var(--safe-left));
+  display: grid; gap: 8px;
+}
+
+/* 지역 묶음 — 소제목이 스크롤 중에도 위에 붙어 지금 어느 지역인지 보인다.
+   묶음마다 따로 감싸 두어야 다음 소제목이 앞 소제목을 밀어 올린다. */
+.group { display: grid; gap: 8px; }
+.group + .group { margin-top: 10px; }
+.group-head {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  margin: 0 calc(-1 * (var(--gut) + var(--safe-right))) 0 calc(-1 * (var(--gut) + var(--safe-left)));
+  padding: 9px calc(var(--gut) + var(--safe-right) + 6px) 9px calc(var(--gut) + var(--safe-left) + 6px);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  font-size: inherit; font-weight: inherit;
+}
+.group-name { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+.group-count { font-size: 12px; color: var(--text-faint); }
 
 .card {
   position: relative;
@@ -405,6 +430,15 @@ input, select, textarea { font: inherit; color: inherit; }
 .geo-results .g-addr { display: block; font-size: 12px; color: var(--text-faint); }
 .geo-msg { padding: 10px 12px; font-size: 13px; color: var(--text-faint); }
 
+.picks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -8px; }
+.pick {
+  padding: 6px 12px;
+  background: var(--surface-2); color: var(--text-soft);
+  border: 1px solid var(--line); border-radius: 999px;
+  font-size: 13px; cursor: pointer;
+}
+.pick:hover { color: var(--text); border-color: var(--line-strong); }
+
 .rate { display: flex; align-items: center; gap: 2px; }
 .star {
   width: 34px; height: 34px;
@@ -433,6 +467,9 @@ input, select, textarea { font: inherit; color: inherit; }
 }
 .loc-text { margin: 0 0 9px; font-size: 13px; color: var(--text-soft); overflow-wrap: anywhere; }
 .loc-btns { display: flex; flex-wrap: wrap; gap: 7px; }
+.loc-open { margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--line); }
+.loc-open-label { display: block; margin-bottom: 7px; font-size: 12.5px; color: var(--text-faint); }
+a.ghost-btn { display: inline-flex; align-items: center; text-decoration: none; }
 
 .primary-btn {
   height: 38px; padding: 0 18px;
@@ -467,10 +504,12 @@ input, select, textarea { font: inherit; color: inherit; }
 .pop-stars { color: var(--star); font-size: 12px; letter-spacing: 1px; }
 .pop-stars .off { color: var(--star-off); }
 .pop-memo { margin: 6px 0 0; font-size: 13px; color: var(--text-soft); white-space: pre-wrap; }
-.pop-edit {
-  margin-top: 9px; padding: 4px 10px;
+.pop-actions { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 6px; }
+.pop-edit, .pop-link {
+  padding: 5px 11px;
   background: var(--surface-2); border: 1px solid var(--line);
   border-radius: 999px; font-size: 12px; cursor: pointer;
+  color: var(--text-soft); text-decoration: none; white-space: nowrap;
 }
 .leaflet-container a.leaflet-popup-close-button { color: var(--text-faint); }
 
@@ -529,10 +568,12 @@ input, select, textarea { font: inherit; color: inherit; }
 
   .list-head { padding: 14px 16px 10px; }
   .count { font-size: 14px; }
-  .cards {
-    padding: 0 calc(12px + var(--safe-left)) 128px calc(12px + var(--safe-right));
-    gap: 10px;
-  }
+  .cards { padding-bottom: 128px; gap: 10px; }
+  .group-name { font-size: 15px; }
+  .group-count { font-size: 12.5px; }
+  .pick { padding: 8px 14px; font-size: 14px; }
+  .loc-open-label { font-size: 13px; }
+  .pop-edit, .pop-link { padding: 7px 13px; font-size: 13px; }
   .card-main { padding: 15px 56px 11px 16px; }
   .card-name { font-size: 16px; }
   .card-memo { font-size: 14px; }

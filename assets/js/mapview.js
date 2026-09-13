@@ -58,7 +58,12 @@ var MapView = (function () {
       '<div class="pop-stars">' + starText(p.rating).replace(/☆/g, '<span class="off">☆</span>') + '</div>' +
       (meta ? '<div class="card-meta">' + esc(meta) + '</div>' : '') +
       memo +
-      '<button type="button" class="pop-edit" data-edit="' + esc(p.id) + '">열어서 편집</button>';
+      '<div class="pop-actions">' +
+        '<button type="button" class="pop-edit" data-edit="' + esc(p.id) + '">열어서 편집</button>' +
+        '<a class="pop-link" target="_blank" rel="noopener noreferrer" href="' +
+          'https://www.google.com/maps/search/?api=1&amp;query=' + p.lat + ',' + p.lng +
+          '">구글지도</a>' +
+      '</div>';
   }
 
   return {

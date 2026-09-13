@@ -60,6 +60,8 @@ var Store = (function () {
       address: String((raw && raw.address) || '').trim().slice(0, 200),
       lat: hasCoords ? lat : null,
       lng: hasCoords ? lng : null,
+      region: String((raw && raw.region) || '').trim().slice(0, 24) ||
+              Region.guess((raw && raw.address) || ''),
       rating: clampRating(raw && raw.rating),
       favorite: !!(raw && raw.favorite),
       memo: String((raw && raw.memo) || '').slice(0, 2000),

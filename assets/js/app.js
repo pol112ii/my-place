@@ -9,6 +9,7 @@
     toolbar: $('.toolbar'),
     q: $('#q'),
     chips: document.querySelectorAll('.chip[data-scope]'),
+    regionFilter: $('#region-filter'),
     tagFilter: $('#tag-filter'),
     sort: $('#sort'),
     list: $('#list'),
@@ -25,6 +26,8 @@
     sheetTitle: $('#sheet-title'),
     fName: $('#f-name'),
     fDate: $('#f-date'),
+    fRegion: $('#f-region'),
+    regionPicks: $('#region-picks'),
     fTags: $('#f-tags'),
     fMemo: $('#f-memo'),
     fFav: $('#f-fav'),
@@ -32,6 +35,10 @@
     rateText: $('#rate-text'),
     locText: $('#f-loc-text'),
     btnLocClear: $('#btn-loc-clear'),
+    locOpen: $('#loc-open'),
+    linkGoogle: $('#link-google'),
+    linkApple: $('#link-apple'),
+    linkDir: $('#link-dir'),
     btnDelete: $('#btn-delete'),
     geoResults: $('#geo-results'),
     pickbar: $('#pickbar'),
@@ -41,7 +48,7 @@
     fileInput: $('#file-input')
   };
 
-  var filters = { q: '', scope: 'all', tag: '', sort: 'visited' };
+  var filters = { q: '', scope: 'all', region: '', tag: '', sort: 'region' };
   var activeId = null;
   var view = 'map';           // 좁은 화면에서 보이는 패널
   var draft = null;           // 편집 중인 장소의 임시 상태
@@ -88,6 +95,7 @@
     var out = Store.list().filter(function (p) {
       if (filters.scope === 'fav' && !p.favorite) return false;
       if (filters.scope === 'top' && p.rating < 4) return false;
+      if (filters.region && Region.of(p) !== filters.region) return false;
       if (filters.tag && p.tags.indexOf(filters.tag) === -1) return false;
       if (!q) return true;
       var hay = [p.name, p.memo, p.address, p.tags.join(' ')].join(' ').toLowerCase();
@@ -109,10 +117,11 @@
     return out.sort(by[filters.sort] || by.visited);
   }
 
-  function cardHTML(p) {
+  function cardHTML(p, showRegion) {
     var meta = [];
     if (p.visitedAt) meta.push(p.visitedAt.replace(/-/g, '.'));
-    if (p.address) meta.push(p.address.split(',').slice(0, 2).join(',').trim());
+    if (showRegion && Region.of(p) !== Region.NONE) meta.push(Region.of(p));
+    if (p.address) meta.push(p.address.split(',')[0].trim());
     else if (p.lat === null) meta.push('위치 없음');
 
     return '' +
@@ -135,28 +144,71 @@
       '</div>';
   }
 
-  function refreshTagOptions() {
-    var seen = {};
-    Store.list().forEach(function (p) {
-      p.tags.forEach(function (t) { seen[t] = true; });
-    });
-    var tags = Object.keys(seen).sort(function (a, b) { return a.localeCompare(b, 'ko'); });
-    if (tags.indexOf(filters.tag) === -1) filters.tag = '';
+  function cardBox(p, showRegion, tag) {
+    tag = tag || 'div';
+    return '<' + tag + ' class="card' + (p.id === activeId ? ' is-active' : '') + '">' +
+      cardHTML(p, showRegion) + '</' + tag + '>';
+  }
 
+  /** 지역 이름 정렬 — '지역 없음'은 늘 맨 끝으로. */
+  function byRegionName(a, b) {
+    if (a === Region.NONE) return 1;
+    if (b === Region.NONE) return -1;
+    return a.localeCompare(b, 'ko');
+  }
+
+  /** 지역별로 묶어 소제목과 함께 그린다. */
+  function groupedHTML(items) {
+    var groups = {};
+    items.forEach(function (p) {
+      var key = Region.of(p);
+      (groups[key] || (groups[key] = [])).push(p);
+    });
+
+    // 묶음마다 따로 감싸야 소제목이 다음 묶음에 밀려 자연스럽게 올라간다.
+    return Object.keys(groups).sort(byRegionName).map(function (key) {
+      return '<li class="group">' +
+          '<h3 class="group-head">' +
+            '<span class="group-name">' + esc(key) + '</span>' +
+            '<span class="group-count">' + groups[key].length + '곳</span>' +
+          '</h3>' +
+          groups[key].map(function (p) { return cardBox(p, false); }).join('') +
+        '</li>';
+    }).join('');
+  }
+
+  function refreshFilterOptions() {
+    var tagSeen = {};
+    var regionSeen = {};
+    Store.list().forEach(function (p) {
+      p.tags.forEach(function (t) { tagSeen[t] = true; });
+      regionSeen[Region.of(p)] = true;
+    });
+
+    var tags = Object.keys(tagSeen).sort(function (a, b) { return a.localeCompare(b, 'ko'); });
+    if (tags.indexOf(filters.tag) === -1) filters.tag = '';
     els.tagFilter.innerHTML = '<option value="">모든 태그</option>' +
       tags.map(function (t) {
         return '<option value="' + esc(t) + '">#' + esc(t) + '</option>';
       }).join('');
     els.tagFilter.value = filters.tag;
+
+    var regions = Object.keys(regionSeen).sort(byRegionName);
+    if (regions.indexOf(filters.region) === -1) filters.region = '';
+    els.regionFilter.innerHTML = '<option value="">모든 지역</option>' +
+      regions.map(function (r) {
+        return '<option value="' + esc(r) + '">' + esc(r) + '</option>';
+      }).join('');
+    els.regionFilter.value = filters.region;
   }
 
   function render() {
     var items = visible();
     var total = Store.list().length;
 
-    els.list.innerHTML = items.map(function (p) {
-      return '<li class="card' + (p.id === activeId ? ' is-active' : '') + '">' + cardHTML(p) + '</li>';
-    }).join('');
+    els.list.innerHTML = (filters.sort === 'region')
+      ? groupedHTML(items)
+      : items.map(function (p) { return cardBox(p, true, 'li'); }).join('');
 
     // 안내문은 첫 기록을 남기기 전까지만 보여 준다.
     if (MapView.available()) els.mapHint.hidden = total > 0;
@@ -185,6 +237,28 @@
     els.rateText.textContent = words[v];
   }
 
+  /** 주소에서 뽑은 지역 후보를 눌러 고를 수 있게 보여 준다. */
+  function setRegionPicks(list) {
+    var picks = (list || []).filter(Boolean);
+    els.regionPicks.innerHTML = picks.map(function (r) {
+      return '<button type="button" class="pick" data-region="' + esc(r) + '">' + esc(r) + '</button>';
+    }).join('');
+    els.regionPicks.hidden = picks.length === 0;
+  }
+
+  /** 좌표가 있으면 지도앱으로 바로 열 수 있는 링크를 채운다. */
+  function updateMapLinks() {
+    var has = draft && draft.lat !== null && draft.lng !== null;
+    els.locOpen.hidden = !has;
+    if (!has) return;
+
+    var at = draft.lat + ',' + draft.lng;
+    var label = encodeURIComponent(els.fName.value.trim() || draft.address || '');
+    els.linkGoogle.href = 'https://www.google.com/maps/search/?api=1&query=' + at;
+    els.linkApple.href = 'https://maps.apple.com/?ll=' + at + '&q=' + (label || at);
+    els.linkDir.href = 'https://www.google.com/maps/dir/?api=1&destination=' + at;
+  }
+
   function setCoords(lat, lng, address) {
     draft.lat = lat;
     draft.lng = lng;
@@ -195,6 +269,7 @@
       ? (draft.address || (lat.toFixed(5) + ', ' + lng.toFixed(5)))
       : '위치가 아직 없어요';
     els.btnLocClear.hidden = !has;
+    updateMapLinks();
 
     if (has) {
       MapView.setDraft(lat, lng, function (nlat, nlng) {
@@ -214,6 +289,9 @@
       draft.address = found.address;
       els.locText.textContent = found.address;
       if (!els.fName.value.trim()) els.fName.value = found.name;
+      if (!els.fRegion.value.trim()) els.fRegion.value = found.region || '';
+      setRegionPicks(found.regionPicks);
+      updateMapLinks();
     });
   }
 
@@ -228,6 +306,8 @@
     els.btnDelete.hidden = !place;
     els.fName.value = place ? place.name : '';
     els.fDate.value = place ? (place.visitedAt || todayISO()) : todayISO();
+    els.fRegion.value = place ? place.region : '';
+    setRegionPicks(place && place.address ? Region.suggest(place.address) : []);
     els.fTags.value = place ? place.tags.join(', ') : '';
     els.fMemo.value = place ? place.memo : '';
     els.fFav.checked = place ? place.favorite : false;
@@ -286,6 +366,7 @@
       address: draft.address,
       lat: draft.lat,
       lng: draft.lng,
+      region: els.fRegion.value,
       rating: draft.rating,
       favorite: els.fFav.checked,
       memo: els.fMemo.value,
@@ -449,6 +530,10 @@
         render();
       });
     });
+    els.regionFilter.addEventListener('change', function () {
+      filters.region = els.regionFilter.value;
+      render();
+    });
     els.tagFilter.addEventListener('change', function () {
       filters.tag = els.tagFilter.value;
       render();
@@ -496,6 +581,12 @@
       if (e.target === els.sheet) closeSheet();
     });
 
+    els.regionPicks.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-region]');
+      if (btn) els.fRegion.value = btn.getAttribute('data-region');
+    });
+    els.fName.addEventListener('input', updateMapLinks);
+
     els.rating.addEventListener('click', function (e) {
       var star = e.target.closest('.star');
       if (!star) return;
@@ -514,6 +605,8 @@
       if (!item) return;
       els.fName.value = item.name;
       setCoords(item.lat, item.lng, item.address);
+      if (!els.fRegion.value.trim()) els.fRegion.value = item.region || '';
+      setRegionPicks(item.regionPicks);
       els.geoResults.hidden = true;
       toast('위치를 넣었어요. 지도에서 핀을 끌어 미세 조정할 수 있어요.', 3200);
     });
@@ -621,7 +714,7 @@
 
     Store.init();
     Store.subscribe(function () {
-      refreshTagOptions();
+      refreshFilterOptions();
       render();
     });
 
@@ -648,7 +741,7 @@
 
     bind();
     measureToolbar();
-    refreshTagOptions();
+    refreshFilterOptions();
     render();
     showView(mapOk ? 'map' : 'list');
     MapView.fitAll(Store.list());

@@ -49,10 +49,14 @@
     <button type="button" class="chip is-on" data-scope="all">전체</button>
     <button type="button" class="chip" data-scope="fav">★ 즐겨찾기</button>
     <button type="button" class="chip" data-scope="top">별점 4↑</button>
+    <select id="region-filter" class="chip chip-select" aria-label="지역 필터">
+      <option value="">모든 지역</option>
+    </select>
     <select id="tag-filter" class="chip chip-select" aria-label="태그 필터">
       <option value="">모든 태그</option>
     </select>
     <select id="sort" class="chip chip-select" aria-label="정렬 방식">
+      <option value="region">지역별 묶어보기</option>
       <option value="visited">방문일 순</option>
       <option value="rating">별점 순</option>
       <option value="created">최근 기록 순</option>
@@ -107,10 +111,10 @@
 
     <div class="sheet-body">
       <label class="field">
-        <span class="label">장소 이름</span>
+        <span class="label">장소 이름 <small>이름이나 주소로 찾을 수 있어요</small></span>
         <span class="name-row">
-          <input type="text" id="f-name" placeholder="예) 서촌 골목 카페" required maxlength="80">
-          <button type="button" class="ghost-btn" id="btn-search-place">이름으로 찾기</button>
+          <input type="text" id="f-name" placeholder="예) 서촌 골목 카페 · 송파구 방이동" required maxlength="80">
+          <button type="button" class="ghost-btn" id="btn-search-place">찾기</button>
         </span>
       </label>
       <div class="geo-results" id="geo-results" hidden></div>
@@ -139,10 +143,16 @@
           <input type="date" id="f-date">
         </label>
         <label class="field">
-          <span class="label">태그 <small>쉼표로 구분</small></span>
-          <input type="text" id="f-tags" placeholder="카페, 산책, 여행" maxlength="120">
+          <span class="label">지역 <small>목록을 묶는 기준</small></span>
+          <input type="text" id="f-region" placeholder="예) 송파구" maxlength="24">
         </label>
       </div>
+      <div class="picks" id="region-picks" hidden></div>
+
+      <label class="field">
+        <span class="label">태그 <small>쉼표로 구분</small></span>
+        <input type="text" id="f-tags" placeholder="카페, 산책, 여행" maxlength="120">
+      </label>
 
       <label class="field">
         <span class="label">메모</span>
@@ -157,6 +167,14 @@
             <button type="button" class="ghost-btn" id="btn-pick">지도에서 선택</button>
             <button type="button" class="ghost-btn" id="btn-here">현재 위치</button>
             <button type="button" class="ghost-btn" id="btn-loc-clear" hidden>위치 지우기</button>
+          </div>
+          <div class="loc-open" id="loc-open" hidden>
+            <span class="loc-open-label">지도앱에서 열기</span>
+            <div class="loc-btns">
+              <a class="ghost-btn" id="link-google" target="_blank" rel="noopener noreferrer">구글지도</a>
+              <a class="ghost-btn" id="link-apple" target="_blank" rel="noopener noreferrer">애플지도</a>
+              <a class="ghost-btn" id="link-dir" target="_blank" rel="noopener noreferrer">길찾기</a>
+            </div>
           </div>
         </div>
       </div>
@@ -175,6 +193,7 @@
 <input type="file" id="file-input" accept="application/json,.json" hidden>
 
 <script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="assets/js/region.js"></script>
 <script src="assets/js/store.js"></script>
 <script src="assets/js/geocode.js"></script>
 <script src="assets/js/mapview.js"></script>

@@ -1,12 +1,13 @@
 /* sw.js — 앱 파일을 캐시해 두어 인터넷이 없을 때도 기록을 열어 볼 수 있게 한다.
    (지도 타일은 인터넷이 있어야 보인다. 기록 자체는 브라우저 안에 있으므로 그대로 보인다.) */
-var CACHE = 'myplace-v1';
+var CACHE = 'myplace-v2';
 
 var ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './assets/css/style.css',
+  './assets/js/region.js',
   './assets/js/store.js',
   './assets/js/geocode.js',
   './assets/js/mapview.js',
