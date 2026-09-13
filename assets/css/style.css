@@ -23,6 +23,13 @@
   --topbar-h: 56px;
   --toolbar-h: 59px;   /* app.js가 실제 높이로 갱신 */
   --tabbar-h: 0px;
+
+  /* 노치·홈 인디케이터가 가리는 만큼 비워 두는 값. 해당 없으면 0이 된다. */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+  --top-gap: 0px;      /* 상단 여유 = 안전영역 + 최소 여백 (좁은 화면에서 켜진다) */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -78,7 +85,11 @@ body {
         "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
   -webkit-text-size-adjust: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
+
+button, .chip, .tab, .star, .toggle { touch-action: manipulation; }
 
 h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -.01em; }
 button { font: inherit; color: inherit; }
@@ -86,8 +97,10 @@ input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------- 상단 바 ---------- */
 .topbar {
-  height: var(--topbar-h);
-  padding: 0 14px;
+  height: calc(var(--topbar-h) + var(--top-gap));
+  padding-top: var(--top-gap);
+  padding-right: calc(14px + var(--safe-right));
+  padding-left: calc(14px + var(--safe-left));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -103,7 +116,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .topbar-actions { display: flex; align-items: center; gap: 4px; }
 
 .icon-btn {
-  width: 36px; height: 36px;
+  width: 42px; height: 42px;
   display: grid; place-items: center;
   background: none; border: 0; border-radius: 10px;
   font-size: 16px; cursor: pointer; color: var(--text-soft);
@@ -132,7 +145,7 @@ input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------- 검색 / 필터 ---------- */
 .toolbar {
-  padding: 10px 14px;
+  padding: 10px calc(14px + var(--safe-right)) 10px calc(14px + var(--safe-left));
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
@@ -152,6 +165,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .search-field input {
   flex: 1; min-width: 0; height: 100%;
   background: none; border: 0; outline: none;
+  font-size: 16px;
 }
 .chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto; }
 .chip {
@@ -170,7 +184,10 @@ input, select, textarea { font: inherit; color: inherit; }
 /* ---------- 레이아웃 ---------- */
 .layout {
   position: absolute;
-  inset: calc(var(--topbar-h) + var(--toolbar-h)) 0 var(--tabbar-h) 0;
+  inset: calc(var(--topbar-h) + var(--top-gap) + var(--toolbar-h))
+         0
+         calc(var(--tabbar-h) + var(--safe-bottom))
+         0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 380px;
 }
@@ -213,6 +230,7 @@ input, select, textarea { font: inherit; color: inherit; }
   border-left: 1px solid var(--line);
   background: var(--bg);
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
 .list-head {
@@ -237,7 +255,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .card.is-active { border-color: var(--star); }
 .card-main {
   display: block; width: 100%; text-align: left;
-  padding: 12px 44px 12px 14px;
+  padding: 12px 44px 10px 14px;
   background: none; border: 0; cursor: pointer;
 }
 .card-main:hover { background: var(--surface-2); }
@@ -251,7 +269,11 @@ input, select, textarea { font: inherit; color: inherit; }
   white-space: pre-wrap; overflow-wrap: anywhere;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
-.card-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+.card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; padding: 0 12px 12px 14px;
+}
+.card-tags { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
 .tag {
   padding: 2px 8px; font-size: 11.5px; color: var(--text-soft);
   background: var(--surface-2); border-radius: 999px;
@@ -265,8 +287,8 @@ input, select, textarea { font: inherit; color: inherit; }
 .card-fav:hover { background: var(--surface-2); }
 .card-fav.is-on { color: var(--star); }
 .card-edit {
-  position: absolute; bottom: 8px; right: 8px;
-  padding: 4px 9px; font-size: 12px; color: var(--text-faint);
+  flex: 0 0 auto;
+  padding: 5px 12px; font-size: 12px; color: var(--text-faint);
   background: none; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
 }
 .card-edit:hover { color: var(--text); border-color: var(--line-strong); }
@@ -331,7 +353,11 @@ input, select, textarea { font: inherit; color: inherit; }
   border-bottom: 1px solid var(--line);
 }
 .sheet-head h2 { font-size: 16px; }
-.sheet-body { padding: 16px 18px; display: grid; gap: 15px; overflow-y: auto; }
+.sheet-body {
+  padding: 16px 18px; display: grid; gap: 15px;
+  overflow-y: auto; overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
 .sheet-foot {
   display: flex; align-items: center; gap: 8px;
   padding: 12px 14px;
@@ -353,6 +379,7 @@ input, select, textarea { font: inherit; color: inherit; }
   border: 1px solid var(--line-strong);
   border-radius: var(--r-s);
   outline: none;
+  font-size: 16px;   /* 16px 미만이면 iOS가 초점을 맞출 때 화면을 확대해 버린다 */
 }
 .sheet textarea { resize: vertical; line-height: 1.6; }
 .sheet input:focus, .sheet textarea:focus, .sheet select:focus { border-color: var(--primary); }
@@ -459,47 +486,146 @@ input, select, textarea { font: inherit; color: inherit; }
   font-size: 13.5px; text-align: center;
 }
 
-/* ---------- 좁은 화면 ---------- */
+/* ---------- 좁은 화면 (휴대폰 기준) ---------- */
 @media (max-width: 760px) {
-  :root { --tabbar-h: 52px; }
+  :root {
+    /* 노치가 있으면 그만큼, 없어도 최소 12px은 위를 비워 둔다. */
+    --top-gap: max(var(--safe-top), 12px);
+    --topbar-h: 60px;
+    --tabbar-h: 56px;
+  }
 
-  .toolbar { padding: 8px 12px; gap: 8px; }
-  .chips { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  /* 상단 — 제목과 툴바에 숨 쉴 자리를 준다 */
+  .brand { gap: 10px; }
+  .brand-mark { font-size: 21px; }
+  .brand h1 { font-size: 18px; }
+  .icon-btn { width: 44px; height: 44px; font-size: 17px; }
+
+  .toolbar {
+    padding: 12px calc(14px + var(--safe-right)) 13px calc(14px + var(--safe-left));
+    gap: 11px;
+  }
+  .search-field { flex: 1 1 100%; height: 44px; }
+  .search-icon { font-size: 14px; }
+
+  .chips {
+    width: 100%; margin-left: 0;
+    overflow-x: auto; flex-wrap: nowrap;
+    scrollbar-width: none;
+    /* 좌우 끝까지 밀어도 화면 가장자리에 붙지 않게 */
+    padding: 2px calc(14px + var(--safe-right)) 2px calc(14px + var(--safe-left));
+    margin-right: calc(-14px - var(--safe-right));
+    margin-left: calc(-14px - var(--safe-left));
+  }
   .chips::-webkit-scrollbar { display: none; }
+  .chip { height: 40px; padding: 0 15px; font-size: 14px; }
+  .chip-select { min-width: 116px; }
 
+  /* 본문 — 한 번에 한 화면씩 */
   .layout { grid-template-columns: 1fr; }
   .panel { display: none; }
   .panel.is-shown { display: block; }
   .panel-list { position: absolute; inset: 0; border-left: 0; }
 
+  .list-head { padding: 14px 16px 10px; }
+  .count { font-size: 14px; }
+  .cards {
+    padding: 0 calc(12px + var(--safe-left)) 128px calc(12px + var(--safe-right));
+    gap: 10px;
+  }
+  .card-main { padding: 15px 56px 11px 16px; }
+  .card-name { font-size: 16px; }
+  .card-memo { font-size: 14px; }
+  .card-meta { font-size: 12.5px; }
+  .card-fav { top: 6px; right: 6px; width: 44px; height: 44px; font-size: 19px; }
+  .card-foot { padding: 0 12px 13px 16px; }
+  .card-edit { padding: 8px 15px; font-size: 13px; }
+  .tag { padding: 3px 10px; font-size: 12px; }
+
+  .empty { padding: 56px 28px; }
+  .empty-sub { font-size: 14px; }
+
+  /* 아래 탭 / 떠 있는 버튼 */
   .tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 800;
     display: grid; grid-template-columns: 1fr 1fr;
-    height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
+    height: calc(var(--tabbar-h) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
     background: var(--surface); border-top: 1px solid var(--line);
   }
   .tab {
-    background: none; border: 0; font-size: 13.5px; color: var(--text-faint); cursor: pointer;
+    background: none; border: 0; font-size: 14.5px; color: var(--text-faint); cursor: pointer;
     border-top: 2px solid transparent;
   }
   .tab.is-on { color: var(--text); font-weight: 700; border-top-color: var(--text); }
 
-  .fab { bottom: calc(var(--tabbar-h) + 14px + env(safe-area-inset-bottom)); right: 14px; }
-  .pickbar { bottom: calc(var(--tabbar-h) + 14px + env(safe-area-inset-bottom)); }
-  .toast { bottom: calc(var(--tabbar-h) + 70px + env(safe-area-inset-bottom)); }
-  /* 좁은 화면에서는 '장소 추가' 버튼과 겹치지 않도록 자리를 옮긴다. */
-  .map-hint {
-    left: 12px; right: 12px; top: 10px; bottom: auto;
-    transform: none; max-width: none; white-space: normal;
-    font-size: 12px; text-align: center;
+  .fab {
+    height: 52px; padding: 0 22px; font-size: 15.5px;
+    right: calc(14px + var(--safe-right));
+    bottom: calc(var(--tabbar-h) + 14px + var(--safe-bottom));
   }
-  .map-btn { left: 12px; right: auto; bottom: 24px; }
+  .pickbar {
+    bottom: calc(var(--tabbar-h) + 14px + var(--safe-bottom));
+    padding: 11px 11px 11px 20px; font-size: 14px;
+  }
+  .pickbar button { padding: 8px 14px; font-size: 13.5px; }
+  .toast { bottom: calc(var(--tabbar-h) + 76px + var(--safe-bottom)); font-size: 14px; }
 
+  /* 지도 위 버튼은 '장소 추가' 버튼과 겹치지 않게 반대편으로 */
+  .map-hint {
+    left: 12px; right: 12px; top: 12px; bottom: auto;
+    transform: none; max-width: none; white-space: normal;
+    font-size: 12.5px; text-align: center;
+  }
+  .map-btn {
+    left: calc(12px + var(--safe-left)); right: auto; bottom: 26px;
+    height: 42px; padding: 0 16px; font-size: 14px;
+  }
+
+  /* 입력 시트 — 아래에서 올라오는 형태 */
   .sheet-backdrop { padding: 0; place-items: end stretch; }
-  .sheet { max-width: none; max-height: 92vh; border-radius: var(--r-l) var(--r-l) 0 0; }
-  .sheet-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .sheet {
+    max-width: none;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+    transition: transform .2s ease;
+  }
+  /* 끌어 내릴 수 있어 보이도록 손잡이 표시 */
+  .sheet-head {
+    position: relative;
+    padding: 20px 12px 14px 18px;
+  }
+  /* 끌어 내려 닫을 수 있다는 표시 */
+  .sheet-head { touch-action: none; }
+  .sheet-head::before {
+    content: ''; position: absolute; top: 8px; left: 50%;
+    width: 40px; height: 4px; margin-left: -20px;
+    background: var(--line-strong); border-radius: 2px;
+  }
+  .sheet-head h2 { font-size: 17px; }
+  .sheet-body { padding: 18px; gap: 18px; }
+  .sheet-foot {
+    padding: 12px calc(14px + var(--safe-right)) calc(14px + var(--safe-bottom)) calc(14px + var(--safe-left));
+  }
+
+  .label { font-size: 13px; }
   .row2 { grid-template-columns: 1fr; }
+  .star { width: 46px; height: 46px; font-size: 30px; }
+  .rate-text { margin-left: 6px; font-size: 13px; }
+  .toggle { font-size: 14.5px; gap: 11px; padding: 4px 0; }
+  .toggle-box { width: 38px; height: 38px; font-size: 18px; }
+  .loc-text { font-size: 14px; }
+  .geo-results { max-height: 240px; }
+  .geo-results button { padding: 13px 14px; font-size: 14px; }
+  .geo-results .g-addr { font-size: 12.5px; }
+
+  .primary-btn { height: 48px; padding: 0 24px; font-size: 15.5px; }
+  .ghost-btn { height: 42px; padding: 0 15px; font-size: 14px; }
+  .text-btn { padding: 12px 12px; font-size: 14.5px; }
+
+  .menu { min-width: 244px; }
+  .menu button { padding: 13px 12px; font-size: 15px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

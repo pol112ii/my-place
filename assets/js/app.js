@@ -123,13 +123,16 @@
         '</span>' +
         (meta.length ? '<span class="card-meta">' + esc(meta.join(' · ')) + '</span>' : '') +
         (p.memo ? '<p class="card-memo">' + esc(p.memo) + '</p>' : '') +
-        (p.tags.length ? '<span class="card-tags">' + p.tags.map(function (t) {
-          return '<span class="tag">#' + esc(t) + '</span>';
-        }).join('') + '</span>' : '') +
       '</button>' +
       '<button type="button" class="card-fav' + (p.favorite ? ' is-on' : '') + '" data-fav="' + esc(p.id) + '"' +
         ' aria-pressed="' + (p.favorite ? 'true' : 'false') + '" title="즐겨찾기">★</button>' +
-      '<button type="button" class="card-edit" data-edit="' + esc(p.id) + '">편집</button>';
+      // 태그와 편집 버튼을 한 줄에 둔다 — 겹치지 않으면서 줄 수도 늘지 않는다.
+      '<div class="card-foot">' +
+        '<span class="card-tags">' + p.tags.map(function (t) {
+          return '<span class="tag">#' + esc(t) + '</span>';
+        }).join('') + '</span>' +
+        '<button type="button" class="card-edit" data-edit="' + esc(p.id) + '">편집</button>' +
+      '</div>';
   }
 
   function refreshTagOptions() {
@@ -577,6 +580,38 @@
     });
 
     window.addEventListener('resize', measureToolbar);
+    enableSheetDrag();
+  }
+
+  /** 시트 손잡이를 아래로 끌면 닫힌다 (손잡이 영역에서만 반응하므로 본문 스크롤과 겹치지 않는다). */
+  function enableSheetDrag() {
+    var head = els.sheet.querySelector('.sheet-head');
+    var startY = null;
+    var moved = 0;
+
+    head.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) return;
+      startY = e.touches[0].clientY;
+      moved = 0;
+      els.form.style.transition = 'none';
+    }, { passive: true });
+
+    head.addEventListener('touchmove', function (e) {
+      if (startY === null) return;
+      moved = Math.max(0, e.touches[0].clientY - startY);
+      els.form.style.transform = 'translateY(' + moved + 'px)';
+    }, { passive: true });
+
+    function release() {
+      if (startY === null) return;
+      els.form.style.transition = '';
+      els.form.style.transform = '';
+      if (moved > 90) closeSheet();
+      startY = null;
+      moved = 0;
+    }
+    head.addEventListener('touchend', release);
+    head.addEventListener('touchcancel', release);
   }
 
   /* ---------- 시작 ---------- */
