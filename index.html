@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>나만의 장소 · My Place</title>
+<meta name="description" content="다녀온 장소를 지도에 별표로 남기고 메모하는 나만의 기록장">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#faf7f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16130f" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="나만의 장소">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+<link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">★</span>
+    <h1>나만의 장소</h1>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="icon-btn" id="btn-theme" title="화면 밝기 전환" aria-label="화면 밝기 전환">◐</button>
+    <div class="menu-wrap">
+      <button type="button" class="icon-btn" id="btn-menu" aria-haspopup="true" aria-expanded="false" aria-label="설정 메뉴">⋯</button>
+      <div class="menu" id="menu" hidden role="menu">
+        <button type="button" role="menuitem" data-act="export">백업 내보내기 (.json)</button>
+        <button type="button" role="menuitem" data-act="import">백업 가져오기</button>
+        <button type="button" role="menuitem" data-act="sample">예시 장소 넣어보기</button>
+        <hr>
+        <button type="button" role="menuitem" class="danger" data-act="reset">전체 삭제</button>
+        <p class="menu-note">기록은 이 브라우저 안에만 저장됩니다.</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="search-field">
+    <span class="search-icon" aria-hidden="true">🔎</span>
+    <input type="search" id="q" placeholder="이름 · 메모 · 태그 검색" autocomplete="off" aria-label="기록 검색">
+  </div>
+  <div class="chips" role="group" aria-label="필터">
+    <button type="button" class="chip is-on" data-scope="all">전체</button>
+    <button type="button" class="chip" data-scope="fav">★ 즐겨찾기</button>
+    <button type="button" class="chip" data-scope="top">별점 4↑</button>
+    <select id="tag-filter" class="chip chip-select" aria-label="태그 필터">
+      <option value="">모든 태그</option>
+    </select>
+    <select id="sort" class="chip chip-select" aria-label="정렬 방식">
+      <option value="visited">방문일 순</option>
+      <option value="rating">별점 순</option>
+      <option value="created">최근 기록 순</option>
+      <option value="name">이름 순</option>
+    </select>
+  </div>
+</div>
+
+<main class="layout" id="layout">
+  <section class="panel panel-map" id="view-map" aria-label="지도">
+    <div id="map"></div>
+    <div class="map-offline" id="map-offline" hidden>
+      <p><strong>지도를 불러오지 못했어요.</strong></p>
+      <p>인터넷 연결을 확인해 주세요. 연결이 없어도 목록·메모 기록은 그대로 쓸 수 있어요.</p>
+    </div>
+    <div class="map-hint" id="map-hint">지도를 눌러 그 자리에 장소를 추가할 수 있어요</div>
+    <button type="button" class="map-btn" id="btn-locate" title="내 위치로 이동">내 위치</button>
+  </section>
+
+  <section class="panel panel-list" id="view-list" aria-label="기록 목록">
+    <div class="list-head">
+      <span id="count" class="count">0곳</span>
+      <span class="list-head-hint" id="list-hint"></span>
+    </div>
+    <ul class="cards" id="list"></ul>
+    <div class="empty" id="empty" hidden>
+      <div class="empty-mark" aria-hidden="true">★</div>
+      <p class="empty-title">아직 기록이 없어요</p>
+      <p class="empty-sub">인상 깊었던 곳을 지도에서 누르거나<br>아래 <b>장소 추가</b> 버튼으로 남겨 보세요.</p>
+    </div>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="화면 전환">
+  <button type="button" class="tab is-on" data-view="map">지도</button>
+  <button type="button" class="tab" data-view="list">목록</button>
+</nav>
+
+<button type="button" class="fab" id="btn-add">＋ 장소 추가</button>
+
+<div class="pickbar" id="pickbar" hidden>
+  <span>지도에서 위치를 눌러 주세요</span>
+  <button type="button" id="btn-pick-cancel">취소</button>
+</div>
+
+<div class="sheet-backdrop" id="sheet-backdrop" hidden>
+  <form class="sheet" id="form" autocomplete="off">
+    <div class="sheet-head">
+      <h2 id="sheet-title">장소 추가</h2>
+      <button type="button" class="icon-btn" id="btn-close" aria-label="닫기">✕</button>
+    </div>
+
+    <div class="sheet-body">
+      <label class="field">
+        <span class="label">장소 이름</span>
+        <span class="name-row">
+          <input type="text" id="f-name" placeholder="예) 서촌 골목 카페" required maxlength="80">
+          <button type="button" class="ghost-btn" id="btn-search-place">이름으로 찾기</button>
+        </span>
+      </label>
+      <div class="geo-results" id="geo-results" hidden></div>
+
+      <div class="field">
+        <span class="label">별점</span>
+        <div class="rate" id="f-rating" role="group" aria-label="별점 선택">
+          <button type="button" class="star" data-v="1" aria-label="별 1개">★</button>
+          <button type="button" class="star" data-v="2" aria-label="별 2개">★</button>
+          <button type="button" class="star" data-v="3" aria-label="별 3개">★</button>
+          <button type="button" class="star" data-v="4" aria-label="별 4개">★</button>
+          <button type="button" class="star" data-v="5" aria-label="별 5개">★</button>
+          <span class="rate-text" id="rate-text">아직 선택 안 함</span>
+        </div>
+      </div>
+
+      <label class="toggle">
+        <input type="checkbox" id="f-fav">
+        <span class="toggle-box" aria-hidden="true">★</span>
+        <span>즐겨찾기 — 특히 다시 가고 싶은 곳</span>
+      </label>
+
+      <div class="row2">
+        <label class="field">
+          <span class="label">방문일</span>
+          <input type="date" id="f-date">
+        </label>
+        <label class="field">
+          <span class="label">태그 <small>쉼표로 구분</small></span>
+          <input type="text" id="f-tags" placeholder="카페, 산책, 여행" maxlength="120">
+        </label>
+      </div>
+
+      <label class="field">
+        <span class="label">메모</span>
+        <textarea id="f-memo" rows="4" placeholder="어떤 점이 인상 깊었나요? 누구와 갔는지, 무엇을 먹었는지…" maxlength="2000"></textarea>
+      </label>
+
+      <div class="field">
+        <span class="label">위치</span>
+        <div class="loc-box">
+          <p class="loc-text" id="f-loc-text">위치가 아직 없어요</p>
+          <div class="loc-btns">
+            <button type="button" class="ghost-btn" id="btn-pick">지도에서 선택</button>
+            <button type="button" class="ghost-btn" id="btn-here">현재 위치</button>
+            <button type="button" class="ghost-btn" id="btn-loc-clear" hidden>위치 지우기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-foot">
+      <button type="button" class="text-btn danger" id="btn-delete" hidden>삭제</button>
+      <span class="spacer"></span>
+      <button type="button" class="ghost-btn" id="btn-cancel">취소</button>
+      <button type="submit" class="primary-btn">저장</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<input type="file" id="file-input" accept="application/json,.json" hidden>
+
+<script src="assets/vendor/leaflet/leaflet.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/geocode.js"></script>
+<script src="assets/js/mapview.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

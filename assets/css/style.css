@@ -1,0 +1,507 @@
+/* 나만의 장소 — 기본 스타일
+   색은 모두 :root 토큰으로 정의하고, 다크 모드에서 값만 교체한다. */
+
+:root {
+  --bg:          #faf7f2;
+  --surface:     #ffffff;
+  --surface-2:   #f2ede4;
+  --text:        #221d17;
+  --text-soft:   #6d6459;
+  --text-faint:  #9a9186;
+  --line:        #e6ded2;
+  --line-strong: #d6caba;
+  --star:        #e0a03c;
+  --star-off:    #d8d0c4;
+  --primary:     #2f6b5f;
+  --primary-ink: #ffffff;
+  --danger:      #b4402f;
+  --shadow-s: 0 1px 2px rgba(40, 30, 18, .07), 0 1px 8px rgba(40, 30, 18, .05);
+  --shadow-m: 0 6px 24px rgba(40, 30, 18, .13);
+  --r-s: 8px;
+  --r-m: 12px;
+  --r-l: 18px;
+  --topbar-h: 56px;
+  --toolbar-h: 59px;   /* app.js가 실제 높이로 갱신 */
+  --tabbar-h: 0px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #16130f;
+    --surface:     #201c17;
+    --surface-2:   #2a251e;
+    --text:        #f0e9df;
+    --text-soft:   #b3a99b;
+    --text-faint:  #8a8074;
+    --line:        #332d25;
+    --line-strong: #443c31;
+    --star:        #f0b452;
+    --star-off:    #4a4238;
+    --primary:     #6fb3a2;
+    --primary-ink: #10221e;
+    --danger:      #e0806e;
+    --shadow-s: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow-m: 0 8px 28px rgba(0, 0, 0, .5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:          #16130f;
+  --surface:     #201c17;
+  --surface-2:   #2a251e;
+  --text:        #f0e9df;
+  --text-soft:   #b3a99b;
+  --text-faint:  #8a8074;
+  --line:        #332d25;
+  --line-strong: #443c31;
+  --star:        #f0b452;
+  --star-off:    #4a4238;
+  --primary:     #6fb3a2;
+  --primary-ink: #10221e;
+  --danger:      #e0806e;
+  --shadow-s: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-m: 0 8px 28px rgba(0, 0, 0, .5);
+}
+
+* { box-sizing: border-box; }
+
+/* hidden 속성이 항상 이기도록 — display 값을 가진 규칙에 눌리지 않게 한다. */
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+        "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  overflow: hidden;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -.01em; }
+button { font: inherit; color: inherit; }
+input, select, textarea { font: inherit; color: inherit; }
+
+/* ---------- 상단 바 ---------- */
+.topbar {
+  height: var(--topbar-h);
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 40;
+}
+.brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.brand-mark { color: var(--star); font-size: 19px; line-height: 1; }
+.brand h1 { font-size: 17px; white-space: nowrap; }
+.topbar-actions { display: flex; align-items: center; gap: 4px; }
+
+.icon-btn {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: none; border: 0; border-radius: 10px;
+  font-size: 16px; cursor: pointer; color: var(--text-soft);
+}
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+
+.menu-wrap { position: relative; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 6px);
+  min-width: 232px; padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  box-shadow: var(--shadow-m);
+  z-index: 50;
+}
+.menu button {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 10px; background: none; border: 0;
+  border-radius: var(--r-s); font-size: 14px; cursor: pointer;
+}
+.menu button:hover { background: var(--surface-2); }
+.menu button.danger { color: var(--danger); }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 6px 4px; }
+.menu-note { margin: 4px 10px 6px; font-size: 12px; color: var(--text-faint); }
+
+/* ---------- 검색 / 필터 ---------- */
+.toolbar {
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: relative; z-index: 30;
+}
+.search-field {
+  flex: 0 1 340px; min-width: 0;
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 12px;
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  height: 38px;
+}
+.search-field:focus-within { border-color: var(--line-strong); }
+.search-icon { font-size: 13px; opacity: .6; }
+.search-field input {
+  flex: 1; min-width: 0; height: 100%;
+  background: none; border: 0; outline: none;
+}
+.chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.chip {
+  flex: 0 0 auto;
+  height: 34px; padding: 0 13px;
+  background: var(--surface); color: var(--text-soft);
+  border: 1px solid var(--line); border-radius: 999px;
+  font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.chip:hover { border-color: var(--line-strong); color: var(--text); }
+.chip.is-on {
+  background: var(--text); color: var(--bg); border-color: var(--text);
+}
+.chip-select { width: auto; min-width: 108px; padding-right: 8px; }
+
+/* ---------- 레이아웃 ---------- */
+.layout {
+  position: absolute;
+  inset: calc(var(--topbar-h) + var(--toolbar-h)) 0 var(--tabbar-h) 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+}
+.panel { position: relative; min-width: 0; min-height: 0; }
+
+.panel-map { background: var(--surface-2); }
+#map { position: absolute; inset: 0; background: var(--surface-2); }
+.leaflet-container { font: inherit; background: var(--surface-2); }
+
+.map-offline {
+  position: absolute; inset: 0; z-index: 500;
+  display: grid; align-content: center; justify-items: center; gap: 4px;
+  padding: 24px; text-align: center;
+  background: var(--surface-2); color: var(--text-soft);
+}
+.map-offline p { margin: 0; max-width: 320px; }
+
+.map-hint {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 600;
+  padding: 7px 14px;
+  background: var(--surface); color: var(--text-soft);
+  border: 1px solid var(--line); border-radius: 999px;
+  box-shadow: var(--shadow-s);
+  font-size: 12.5px; white-space: nowrap;
+  pointer-events: none;
+  max-width: calc(100% - 28px); overflow: hidden; text-overflow: ellipsis;
+}
+.map-btn {
+  position: absolute; right: 12px; bottom: 26px; z-index: 600;
+  height: 36px; padding: 0 14px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 999px; box-shadow: var(--shadow-s);
+  font-size: 13px; cursor: pointer;
+}
+.map-btn:hover { border-color: var(--line-strong); }
+
+/* ---------- 목록 ---------- */
+.panel-list {
+  border-left: 1px solid var(--line);
+  background: var(--bg);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.list-head {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 12px 16px 8px;
+  background: linear-gradient(var(--bg) 72%, transparent);
+}
+.count { font-size: 13px; font-weight: 700; }
+.list-head-hint { font-size: 12px; color: var(--text-faint); }
+
+.cards { list-style: none; margin: 0; padding: 0 12px 96px; display: grid; gap: 8px; }
+
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  box-shadow: var(--shadow-s);
+  overflow: hidden;
+}
+.card.is-active { border-color: var(--star); }
+.card-main {
+  display: block; width: 100%; text-align: left;
+  padding: 12px 44px 12px 14px;
+  background: none; border: 0; cursor: pointer;
+}
+.card-main:hover { background: var(--surface-2); }
+.card-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.card-name { font-size: 15px; overflow-wrap: anywhere; }
+.card-stars { color: var(--star); font-size: 12.5px; letter-spacing: 1px; white-space: nowrap; }
+.card-stars .off { color: var(--star-off); }
+.card-meta { margin-top: 3px; font-size: 12px; color: var(--text-faint); overflow-wrap: anywhere; }
+.card-memo {
+  margin: 7px 0 0; font-size: 13.5px; color: var(--text-soft);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  padding: 2px 8px; font-size: 11.5px; color: var(--text-soft);
+  background: var(--surface-2); border-radius: 999px;
+}
+.card-fav {
+  position: absolute; top: 8px; right: 8px;
+  width: 30px; height: 30px; display: grid; place-items: center;
+  background: none; border: 0; border-radius: 8px;
+  font-size: 16px; line-height: 1; color: var(--star-off); cursor: pointer;
+}
+.card-fav:hover { background: var(--surface-2); }
+.card-fav.is-on { color: var(--star); }
+.card-edit {
+  position: absolute; bottom: 8px; right: 8px;
+  padding: 4px 9px; font-size: 12px; color: var(--text-faint);
+  background: none; border: 1px solid var(--line); border-radius: 999px; cursor: pointer;
+}
+.card-edit:hover { color: var(--text); border-color: var(--line-strong); }
+
+.empty { padding: 48px 28px; text-align: center; color: var(--text-faint); }
+.empty-mark { font-size: 30px; color: var(--star-off); }
+.empty-title { margin: 10px 0 4px; font-weight: 700; color: var(--text-soft); }
+.empty-sub { margin: 0; font-size: 13px; line-height: 1.7; }
+
+/* ---------- 탭바 / FAB ---------- */
+.tabbar { display: none; }
+.fab {
+  position: fixed; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 700;
+  height: 46px; padding: 0 20px;
+  background: var(--primary); color: var(--primary-ink);
+  border: 0; border-radius: 999px;
+  box-shadow: var(--shadow-m);
+  font-size: 14.5px; font-weight: 700; cursor: pointer;
+}
+.fab:active { transform: translateY(1px); }
+
+.pickbar {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 1200;
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px 9px 18px;
+  background: var(--text); color: var(--bg);
+  border-radius: 999px; box-shadow: var(--shadow-m);
+  font-size: 13.5px;
+}
+.pickbar button {
+  padding: 5px 12px; background: rgba(255, 255, 255, .16); color: inherit;
+  border: 0; border-radius: 999px; cursor: pointer; font-size: 13px;
+}
+
+/* ---------- 입력 시트 ---------- */
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 1000;
+  display: grid; place-items: center;
+  padding: 20px;
+  background: rgba(28, 22, 14, .42);
+  overflow-y: auto;
+}
+.sheet {
+  width: 100%; max-width: 460px;
+  display: flex; flex-direction: column;
+  max-height: calc(100vh - 40px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  box-shadow: var(--shadow-m);
+  overflow: hidden;
+}
+.sheet-backdrop.is-picking { background: none; pointer-events: none; }
+.sheet-backdrop.is-picking .sheet { display: none; }
+
+.sheet-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 12px 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.sheet-head h2 { font-size: 16px; }
+.sheet-body { padding: 16px 18px; display: grid; gap: 15px; overflow-y: auto; }
+.sheet-foot {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+.spacer { flex: 1; }
+
+.field { display: grid; gap: 6px; }
+.label { font-size: 12.5px; font-weight: 700; color: var(--text-soft); }
+.label small { font-weight: 400; color: var(--text-faint); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* 입력 시트 안의 입력칸에만 적용한다 — 툴바의 셀렉트까지 늘어나지 않도록. */
+.sheet input[type="text"], .sheet input[type="date"], .sheet textarea, .sheet select {
+  width: 100%;
+  padding: 9px 11px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-s);
+  outline: none;
+}
+.sheet textarea { resize: vertical; line-height: 1.6; }
+.sheet input:focus, .sheet textarea:focus, .sheet select:focus { border-color: var(--primary); }
+.chip-select:focus { outline: 2px solid var(--line-strong); outline-offset: -1px; }
+
+.name-row { display: flex; gap: 8px; }
+.name-row input { flex: 1; min-width: 0; }
+
+.geo-results {
+  margin-top: -6px;
+  border: 1px solid var(--line); border-radius: var(--r-s);
+  background: var(--surface-2);
+  max-height: 190px; overflow-y: auto;
+}
+.geo-results button {
+  display: block; width: 100%; text-align: left;
+  padding: 9px 12px; background: none; border: 0;
+  border-bottom: 1px solid var(--line); cursor: pointer; font-size: 13px;
+}
+.geo-results button:last-child { border-bottom: 0; }
+.geo-results button:hover { background: var(--surface); }
+.geo-results .g-name { font-weight: 600; }
+.geo-results .g-addr { display: block; font-size: 12px; color: var(--text-faint); }
+.geo-msg { padding: 10px 12px; font-size: 13px; color: var(--text-faint); }
+
+.rate { display: flex; align-items: center; gap: 2px; }
+.star {
+  width: 34px; height: 34px;
+  background: none; border: 0; border-radius: 8px;
+  font-size: 23px; line-height: 1; color: var(--star-off); cursor: pointer;
+  padding: 0;
+}
+.star.is-on { color: var(--star); }
+.rate-text { margin-left: 8px; font-size: 12.5px; color: var(--text-faint); }
+
+.toggle { display: flex; align-items: center; gap: 9px; font-size: 13.5px; cursor: pointer; }
+.toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-box {
+  width: 30px; height: 30px; display: grid; place-items: center;
+  background: var(--surface-2); border: 1px solid var(--line-strong);
+  border-radius: 8px; font-size: 15px; color: var(--star-off);
+}
+.toggle input:checked + .toggle-box { color: var(--star); border-color: var(--star); }
+.toggle input:focus-visible + .toggle-box { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.loc-box {
+  padding: 11px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+}
+.loc-text { margin: 0 0 9px; font-size: 13px; color: var(--text-soft); overflow-wrap: anywhere; }
+.loc-btns { display: flex; flex-wrap: wrap; gap: 7px; }
+
+.primary-btn {
+  height: 38px; padding: 0 18px;
+  background: var(--primary); color: var(--primary-ink);
+  border: 0; border-radius: var(--r-s);
+  font-weight: 700; cursor: pointer;
+}
+.ghost-btn {
+  height: 36px; padding: 0 13px;
+  background: var(--surface); color: var(--text-soft);
+  border: 1px solid var(--line-strong); border-radius: var(--r-s);
+  font-size: 13px; cursor: pointer; white-space: nowrap;
+}
+.ghost-btn:hover { color: var(--text); }
+.text-btn { background: none; border: 0; padding: 8px 10px; font-size: 13.5px; cursor: pointer; }
+.text-btn.danger, .danger { color: var(--danger); }
+
+/* ---------- 지도 핀 ---------- */
+.pin { display: block; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .3)); }
+.pin-label {
+  position: absolute; left: 0; right: 0; top: 6px;
+  text-align: center; font-size: 13px; line-height: 1; color: #fff;
+  pointer-events: none;
+}
+.leaflet-popup-content-wrapper {
+  background: var(--surface); color: var(--text);
+  border-radius: var(--r-m); box-shadow: var(--shadow-m);
+}
+.leaflet-popup-tip { background: var(--surface); }
+.leaflet-popup-content { margin: 12px 14px; font: inherit; min-width: 160px; }
+.pop-name { font-weight: 700; overflow-wrap: anywhere; }
+.pop-stars { color: var(--star); font-size: 12px; letter-spacing: 1px; }
+.pop-stars .off { color: var(--star-off); }
+.pop-memo { margin: 6px 0 0; font-size: 13px; color: var(--text-soft); white-space: pre-wrap; }
+.pop-edit {
+  margin-top: 9px; padding: 4px 10px;
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 999px; font-size: 12px; cursor: pointer;
+}
+.leaflet-container a.leaflet-popup-close-button { color: var(--text-faint); }
+
+/* ---------- 토스트 ---------- */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 1500;
+  max-width: calc(100% - 32px);
+  padding: 10px 18px;
+  background: var(--text); color: var(--bg);
+  border-radius: 999px; box-shadow: var(--shadow-m);
+  font-size: 13.5px; text-align: center;
+}
+
+/* ---------- 좁은 화면 ---------- */
+@media (max-width: 760px) {
+  :root { --tabbar-h: 52px; }
+
+  .toolbar { padding: 8px 12px; gap: 8px; }
+  .chips { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+  .chips::-webkit-scrollbar { display: none; }
+
+  .layout { grid-template-columns: 1fr; }
+  .panel { display: none; }
+  .panel.is-shown { display: block; }
+  .panel-list { position: absolute; inset: 0; border-left: 0; }
+
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 800;
+    display: grid; grid-template-columns: 1fr 1fr;
+    height: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--surface); border-top: 1px solid var(--line);
+  }
+  .tab {
+    background: none; border: 0; font-size: 13.5px; color: var(--text-faint); cursor: pointer;
+    border-top: 2px solid transparent;
+  }
+  .tab.is-on { color: var(--text); font-weight: 700; border-top-color: var(--text); }
+
+  .fab { bottom: calc(var(--tabbar-h) + 14px + env(safe-area-inset-bottom)); right: 14px; }
+  .pickbar { bottom: calc(var(--tabbar-h) + 14px + env(safe-area-inset-bottom)); }
+  .toast { bottom: calc(var(--tabbar-h) + 70px + env(safe-area-inset-bottom)); }
+  /* 좁은 화면에서는 '장소 추가' 버튼과 겹치지 않도록 자리를 옮긴다. */
+  .map-hint {
+    left: 12px; right: 12px; top: 10px; bottom: auto;
+    transform: none; max-width: none; white-space: normal;
+    font-size: 12px; text-align: center;
+  }
+  .map-btn { left: 12px; right: auto; bottom: 24px; }
+
+  .sheet-backdrop { padding: 0; place-items: end stretch; }
+  .sheet { max-width: none; max-height: 92vh; border-radius: var(--r-l) var(--r-l) 0 0; }
+  .sheet-foot { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+  .row2 { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
